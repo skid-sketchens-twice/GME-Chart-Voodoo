@@ -28,28 +28,46 @@ app = Dash(__name__, external_stylesheets=external_stylesheets)
 # Define the layout of the app
 app.layout = html.Div(className='main-container', children=[
     dcc.Graph(id='stock-graph'),
+    html.Div(className='date-picker-container', id='date-picker-container', children=[
+        html.Label('Overlay Custom Date Range:', className='toggle-label'),
+        dcc.RadioItems(
+            id='date-range-toggle',
+            options=[
+                {'label': 'No', 'value': 'no'},
+                {'label': 'Yes', 'value': 'yes'}
+            ],
+            value='no',
+            labelStyle={'display': 'inline-block'}
+        ),
+        dcc.DatePickerRange(
+            id='date-picker-range',
+            start_date=five_years_ago,
+            end_date=latest_date,
+            display_format='DD-MM-YYYY'
+        )
+    ]),
     html.Button('Calculate Best Fit', id='calculate-best-fit-button', n_clicks=0, className='btn-calculate'),
     html.Div(className='slider-container', children=[
         html.Div(className='slider-box', children=[
-            html.Label('3-Month Move Slider:', id='month-move-label'),
+            html.Label('Move Slider:', id='move-label'),
             dcc.Slider(
-                id='month-move-slider',
+                id='move-slider',
                 min=-5*365,  # Extend the range to allow moving up to 5 years back (in days)
-                max=0,
-                value=-5*365 // 2,
-                step=0.001,
-                marks={i: str(i//365) + 'Y' for i in range(-5*365, 1, 365)},
+                max=5*365,
+                value=0,
+                step=0.5,
+                marks={i: str(i//365) + 'Y' for i in range(-5*365, 1, 5*365)},
                 updatemode='drag'
             ),
         ]),
         html.Div(className='slider-box', children=[
-            html.Label('3-Month Y-Axis Offset:', id='month-y-offset-label'),
+            html.Label('Y-Axis Offset:', id='y-offset-label'),
             dcc.Slider(
-                id='month-y-offset-slider',
+                id='y-offset-slider',
                 min=-50,  # Adjust the range as necessary
                 max=50,  # Adjust the range as necessary
                 value=0,
-                step=10,
+                step=1,
                 marks={i: str(i) for i in range(-50, 51, 10)},
                 updatemode='drag'
             ),
@@ -57,26 +75,26 @@ app.layout = html.Div(className='main-container', children=[
     ]),
     html.Div(className='slider-container', children=[
         html.Div(className='slider-box', children=[
-            html.Label('3-Month X-Axis Scale Factor:', id='month-x-scale-label'),
+            html.Label('X-Axis Scale Factor:', id='x-scale-label'),
             dcc.Slider(
-                id='month-x-scale-slider',
-                min=-5.0,
-                max=5.0,
+                id='x-scale-slider',
+                min=0,
+                max=10.0,
                 value=1.0,
                 step=0.001,
-                marks={i: str(i) for i in range(-5, 6)},
+                marks={i: str(i) for i in range(0, 11)},
                 updatemode='drag'
             ),
         ]),
         html.Div(className='slider-box', children=[
-            html.Label('3-Month Y-Axis Scale Factor:', id='month-y-scale-label'),
+            html.Label('Y-Axis Scale Factor:', id='y-scale-label'),
             dcc.Slider(
-                id='month-y-scale-slider',
-                min=-5.0,
-                max=5.0,
+                id='y-scale-slider',
+                min=0,
+                max=10.0,
                 value=1.0,
                 step=0.001,
-                marks={i: str(i) for i in range(-5, 6)},
+                marks={i: str(i) for i in range(0,11)},
                 updatemode='drag'
             ),
         ]),
@@ -97,19 +115,21 @@ app.layout = html.Div(className='main-container', children=[
     ]),
 ])
 
-
 # Callback to update the graph based on the sliders
 @app.callback(
     Output('stock-graph', 'figure'),
     [
-        Input('month-move-slider', 'value'),
-        Input('month-y-scale-slider', 'value'),
-        Input('month-x-scale-slider', 'value'),
-        Input('month-y-offset-slider', 'value'),
+        Input('date-range-toggle', 'value'),
+        Input('date-picker-range', 'start_date'),
+        Input('date-picker-range', 'end_date'),
+        Input('move-slider', 'value'),
+        Input('y-scale-slider', 'value'),
+        Input('x-scale-slider', 'value'),
+        Input('y-offset-slider', 'value'),
         Input('log-scale-slider', 'value')
     ]
 )
-def update_graph(month_move, month_y_scale, month_x_scale, month_y_offset, log_scale):
+def update_graph(use_date_range, start_date, end_date, move, y_scale, x_scale, y_offset, log_scale):
     # Five-year data (static)
     trace_five_year = go.Scatter(
         x=df['Date'],
@@ -120,36 +140,42 @@ def update_graph(month_move, month_y_scale, month_x_scale, month_y_offset, log_s
         hovertemplate='%{text}, %{y:.2f}'
     )
 
-    # Three-month data (always the most recent three months, but moved and scaled)
-    three_months_data_moved = three_months_data.copy()
-    three_months_data_moved['Date'] = three_months_data_moved['Date'] + timedelta(days=month_move)
+    if use_date_range == 'yes':
+        # Custom date range data
+        custom_date_range_data = df[(df['Date'] >= start_date) & (df['Date'] <= end_date)]
+        overlay_data = custom_date_range_data.copy()
+    else:
+        # Three-month data (always the most recent three months, but moved and scaled)
+        overlay_data = three_months_data.copy()
+
+    overlay_data['Date'] = overlay_data['Date'] + timedelta(days=move)
     
-    # Scale the x-axis (date range) of the three-month data
-    date_range = three_months_data_moved['Date'].max() - three_months_data_moved['Date'].min()
+    # Scale the x-axis (date range) of the overlay data
+    date_range = overlay_data['Date'].max() - overlay_data['Date'].min()
     if date_range.total_seconds() != 0:
-        scaled_date_range = date_range * month_x_scale
-        three_months_data_moved['Date'] = three_months_data_moved['Date'].min() + (three_months_data_moved['Date'] - three_months_data_moved['Date'].min()) / date_range * scaled_date_range
+        scaled_date_range = date_range * x_scale
+        overlay_data['Date'] = overlay_data['Date'].min() + (overlay_data['Date'] - overlay_data['Date'].min()) / date_range * scaled_date_range
 
     # Apply logarithmic scaling to the open price
-    three_months_log_scaled_data = np.log(three_months_data_moved['Open']) * log_scale if log_scale > 0 else three_months_data_moved['Open']
+    overlay_log_scaled_data = np.log(overlay_data['Open']) * log_scale if log_scale > 0 else overlay_data['Open']
     
-    # Scale and offset the y-axis (price range) of the three-month data
-    three_months_scaled_data = three_months_log_scaled_data * month_y_scale + month_y_offset
+    # Scale and offset the y-axis (price range) of the overlay data
+    overlay_scaled_data = overlay_log_scaled_data * y_scale + y_offset
 
     # Use the original date for hover text
-    trace_three_months = go.Scatter(
-        x=three_months_data_moved['Date'],
-        y=three_months_scaled_data,
+    trace_overlay = go.Scatter(
+        x=overlay_data['Date'],
+        y=overlay_scaled_data,
         mode='lines',
-        name='3-Month Data',
-        text=three_months_data['Date'].dt.strftime('%b %d, %Y'),  # Set the hover text to the original dates
+        name='Overlay Data',
+        text=overlay_data['Date'].dt.strftime('%b %d, %Y'),  # Set the hover text to the original dates
         hovertemplate='%{text}, %{y:.2f}'
     )
 
     return {
-        'data': [trace_five_year, trace_three_months],
+        'data': [trace_five_year, trace_overlay],
         'layout': go.Layout(
-            title='Stock Data: 5-Year and 3-Month Overlay',
+            title='Stock Data: 5-Year and Overlay',
             xaxis={'title': 'Date'},
             yaxis={'title': 'Open Price'},
             showlegend=True,
@@ -160,32 +186,32 @@ def update_graph(month_move, month_y_scale, month_x_scale, month_y_offset, log_s
     }
 
 @app.callback(
-    Output('month-move-label', 'children'),
-    [Input('month-move-slider', 'value')]
+    Output('move-label', 'children'),
+    [Input('move-slider', 'value')]
 )
-def update_month_move_label(value):
-    return f'3-Month Move Slider: {value} days'
+def update_move_label(value):
+    return f'Move Slider: {value} days'
 
 @app.callback(
-    Output('month-y-scale-label', 'children'),
-    [Input('month-y-scale-slider', 'value')]
+    Output('y-scale-label', 'children'),
+    [Input('y-scale-slider', 'value')]
 )
-def update_month_y_scale_label(value):
-    return f'3-Month Y-Axis Scale Factor: {value}'
+def update_y_scale_label(value):
+    return f'Y-Axis Scale Factor: {value}'
 
 @app.callback(
-    Output('month-x-scale-label', 'children'),
-    [Input('month-x-scale-slider', 'value')]
+    Output('x-scale-label', 'children'),
+    [Input('x-scale-slider', 'value')]
 )
-def update_month_x_scale_label(value):
-    return f'3-Month X-Axis Scale Factor: {value}'
+def update_x_scale_label(value):
+    return f'X-Axis Scale Factor: {value}'
 
 @app.callback(
-    Output('month-y-offset-label', 'children'),
-    [Input('month-y-offset-slider', 'value')]
+    Output('y-offset-label', 'children'),
+    [Input('y-offset-slider', 'value')]
 )
-def update_month_y_offset_label(value):
-    return f'3-Month Y-Axis Offset: {value}'
+def update_y_offset_label(value):
+    return f'Y-Axis Offset: {value}'
 
 @app.callback(
     Output('log-scale-label', 'children'),
@@ -194,45 +220,53 @@ def update_month_y_offset_label(value):
 def update_log_scale_label(value):
     return f'Open Price Logarithmic Scale Factor: {value}'
 
-def calculate_fit(params, three_months_data, df):
-    month_move, month_y_scale, month_x_scale, month_y_offset, log_scale = params
+def calculate_fit(params, overlay_data, df):
+    move, y_scale, x_scale, y_offset, log_scale = params
 
     # Apply the transformations
-    three_months_data_moved = three_months_data.copy()
-    three_months_data_moved['Date'] = three_months_data_moved['Date'] + timedelta(days=month_move)
+    overlay_data_moved = overlay_data.copy()
+    overlay_data_moved['Date'] = overlay_data_moved['Date'] + timedelta(days=move)
     
-    date_range = three_months_data_moved['Date'].max() - three_months_data_moved['Date'].min()
+    date_range = overlay_data_moved['Date'].max() - overlay_data_moved['Date'].min()
     if date_range.total_seconds() != 0:
-        scaled_date_range = date_range * month_x_scale
-        three_months_data_moved['Date'] = three_months_data_moved['Date'].min() + (three_months_data_moved['Date'] - three_months_data_moved['Date'].min()) / date_range * scaled_date_range
+        scaled_date_range = date_range * x_scale
+        overlay_data_moved['Date'] = overlay_data_moved['Date'].min() + (overlay_data_moved['Date'] - overlay_data_moved['Date'].min()) / date_range * scaled_date_range
 
-    three_months_log_scaled_data = np.log(three_months_data_moved['Open']) * log_scale if log_scale > 0 else three_months_data_moved['Open']
-    three_months_scaled_data = three_months_log_scaled_data * month_y_scale + month_y_offset
+    overlay_log_scaled_data = np.log(overlay_data_moved['Open']) * log_scale if log_scale > 0 else overlay_data_moved['Open']
+    overlay_scaled_data = overlay_log_scaled_data * y_scale + y_offset
 
     # Convert datetime64 to int64 for interpolation
-    interpolated_five_year = np.interp(three_months_data_moved['Date'].astype('int64') // 10**9, df['Date'].astype('int64') // 10**9, df['Open'])
-    diff = interpolated_five_year - three_months_scaled_data
+    interpolated_five_year = np.interp(overlay_data_moved['Date'].astype('int64') // 10**9, df['Date'].astype('int64') // 10**9, df['Open'])
+    diff = interpolated_five_year - overlay_scaled_data
     return np.sum(diff**2)
 
 @app.callback(
-    Output('month-move-slider', 'value'),
-    Output('month-y-scale-slider', 'value'),
-    Output('month-x-scale-slider', 'value'),
-    Output('month-y-offset-slider', 'value'),
+    Output('move-slider', 'value'),
+    Output('y-scale-slider', 'value'),
+    Output('x-scale-slider', 'value'),
+    Output('y-offset-slider', 'value'),
     Output('log-scale-slider', 'value'),
     Input('calculate-best-fit-button', 'n_clicks'),
-    State('month-move-slider', 'value'),
-    State('month-y-scale-slider', 'value'),
-    State('month-x-scale-slider', 'value'),
-    State('month-y-offset-slider', 'value'),
-    State('log-scale-slider', 'value')
+    State('move-slider', 'value'),
+    State('y-scale-slider', 'value'),
+    State('x-scale-slider', 'value'),
+    State('y-offset-slider', 'value'),
+    State('log-scale-slider', 'value'),
+    State('date-range-toggle', 'value'),
+    State('date-picker-range', 'start_date'),
+    State('date-picker-range', 'end_date')
 )
-def calculate_best_fit(n_clicks, month_move, month_y_scale, month_x_scale, month_y_offset, log_scale):
+def calculate_best_fit(n_clicks, move, y_scale, x_scale, y_offset, log_scale, use_date_range, start_date, end_date):
     if n_clicks == 0:
-        return month_move, month_y_scale, month_x_scale, month_y_offset, log_scale
+        return move, y_scale, x_scale, y_offset, log_scale
 
-    initial_params = [month_move, month_y_scale, month_x_scale, month_y_offset, log_scale]
-    result = minimize(calculate_fit, initial_params, args=(three_months_data, df), method='Nelder-Mead')
+    if use_date_range == 'yes':
+        overlay_data = df[(df['Date'] >= start_date) & (df['Date'] <= end_date)]
+    else:
+        overlay_data = three_months_data.copy()
+
+    initial_params = [move, y_scale, x_scale, y_offset, log_scale]
+    result = minimize(calculate_fit, initial_params, args=(overlay_data, df), method='Nelder-Mead')
     
     return result.x[0], result.x[1], result.x[2], result.x[3], result.x[4]
 

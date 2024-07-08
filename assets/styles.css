@@ -7,6 +7,7 @@ body {
 
 .main-container {
     padding: 20px;
+    position: relative; /* Allow absolute positioning within the container */
 }
 
 .btn-calculate {
@@ -32,4 +33,14 @@ body {
 
 .slider-box label {
     font-weight: bold;
+}
+
+.date-picker-container {
+    background-color: #2e2e2e;
+    padding: 10px;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    width: max-content;
+    margin-left: auto;
 }
