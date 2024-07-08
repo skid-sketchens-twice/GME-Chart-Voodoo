@@ -27,7 +27,6 @@ app = Dash(__name__, external_stylesheets=external_stylesheets)
 
 # Define the layout of the app
 app.layout = html.Div(className='main-container', children=[
-    dcc.Graph(id='stock-graph'),
     html.Div(className='date-picker-container', id='date-picker-container', children=[
         html.Label('Overlay Custom Date Range:', className='toggle-label'),
         dcc.RadioItems(
@@ -44,8 +43,16 @@ app.layout = html.Div(className='main-container', children=[
             start_date=five_years_ago,
             end_date=latest_date,
             display_format='DD-MM-YYYY'
+        ),
+        html.Label('Custom Historic Data Range', className='toggle-label'),
+        dcc.DatePickerRange(
+            id='historic-picker-range',
+            start_date=five_years_ago,
+            end_date=latest_date,
+            display_format='DD-MM-YYYY'
         )
     ]),
+    dcc.Graph(id='stock-graph'),
     html.Button('Calculate Best Fit', id='calculate-best-fit-button', n_clicks=0, className='btn-calculate'),
     html.Div(className='slider-container', children=[
         html.Div(className='slider-box', children=[
@@ -122,6 +129,8 @@ app.layout = html.Div(className='main-container', children=[
         Input('date-range-toggle', 'value'),
         Input('date-picker-range', 'start_date'),
         Input('date-picker-range', 'end_date'),
+        Input('historic-picker-range', 'start_date'),
+        Input('historic-picker-range', 'end_date'),
         Input('move-slider', 'value'),
         Input('y-scale-slider', 'value'),
         Input('x-scale-slider', 'value'),
@@ -129,14 +138,15 @@ app.layout = html.Div(className='main-container', children=[
         Input('log-scale-slider', 'value')
     ]
 )
-def update_graph(use_date_range, start_date, end_date, move, y_scale, x_scale, y_offset, log_scale):
-    # Five-year data (static)
+def update_graph(use_date_range, start_date, end_date, five_year_start, five_year_end, move, y_scale, x_scale, y_offset, log_scale):
+    # Custom Historic data (static)
+    five_year_data = df[(df['Date'] >= five_year_start) & (df['Date'] <= five_year_end)]
     trace_five_year = go.Scatter(
-        x=df['Date'],
-        y=df['Open'],
+        x=five_year_data['Date'],
+        y=five_year_data['Open'],
         mode='lines',
-        name='5-Year Data',
-        text=df['Date'].dt.strftime('%b %d, %Y'),
+        name='Historic Data Rang',
+        text=five_year_data['Date'].dt.strftime('%b %d, %Y'),
         hovertemplate='%{text}, %{y:.2f}'
     )
 
@@ -272,4 +282,4 @@ def calculate_best_fit(n_clicks, move, y_scale, x_scale, y_offset, log_scale, us
 
 # Run the app
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False)

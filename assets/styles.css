@@ -1,4 +1,3 @@
-/* styles.css */
 body {
     background-color: #1e1e1e;
     color: #7FDBFF;
@@ -43,4 +42,10 @@ body {
     flex-direction: column;
     width: max-content;
     margin-left: auto;
+}
+
+.toggle-label {
+    font-weight: bold;
+    color: #7FDBFF;
+    margin: 10px 0;
 }
