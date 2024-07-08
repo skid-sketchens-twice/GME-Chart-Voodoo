@@ -42,14 +42,14 @@ app.layout = html.Div(className='main-container', children=[
             id='date-picker-range',
             start_date=five_years_ago,
             end_date=latest_date,
-            display_format='DD-MM-YYYY'
+            display_format='MM-DD-YYYY'
         ),
         html.Label('Custom Historic Data Range', className='toggle-label'),
         dcc.DatePickerRange(
             id='historic-picker-range',
             start_date=five_years_ago,
             end_date=latest_date,
-            display_format='DD-MM-YYYY'
+            display_format='MM-DD-YYYY'
         )
     ]),
     dcc.Graph(id='stock-graph'),
@@ -145,7 +145,7 @@ def update_graph(use_date_range, start_date, end_date, five_year_start, five_yea
         x=five_year_data['Date'],
         y=five_year_data['Open'],
         mode='lines',
-        name='Historic Data Rang',
+        name='Historic Data Range',
         text=five_year_data['Date'].dt.strftime('%b %d, %Y'),
         hovertemplate='%{text}, %{y:.2f}'
     )
