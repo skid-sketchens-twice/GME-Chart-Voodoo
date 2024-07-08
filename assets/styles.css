@@ -1,0 +1,35 @@
+/* styles.css */
+body {
+    background-color: #1e1e1e;
+    color: #7FDBFF;
+    font-family: Arial, sans-serif;
+}
+
+.main-container {
+    padding: 20px;
+}
+
+.btn-calculate {
+    margin: 20px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.slider-container {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.slider-box {
+    flex: 1;
+    padding: 10px;
+}
+
+.slider-box label {
+    font-weight: bold;
+}

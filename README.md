@@ -14,6 +14,9 @@ This Dash app allows you to interactively explore and visualize historical stock
 
 **Data Requirements:**
 
+* Python & Pip installed. 
+  - Google this if you have to. I'm not providing directions for this. I promise it's easy.
+
 * A CSV file containing historical daily stock data (named "Daily2020.csv" in this example). 
   - Ensure it has a "Date" column in a datetime format and a "Close" (or "Open") column for price data.
 

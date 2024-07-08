@@ -18,15 +18,20 @@ five_years_ago = latest_date - timedelta(days=5*365)
 # Filter data for specific ranges
 three_months_data = df[(df['Date'] >= three_months_ago) & (df['Date'] <= latest_date)]
 
+external_stylesheets = [
+    './assets/styles.css'  # Ensure the correct path to your CSS file
+]
+
 # Initialize the Dash app
-app = Dash(__name__)
+app = Dash(__name__, external_stylesheets=external_stylesheets)
 
 # Define the layout of the app
-app.layout = html.Div(style={'backgroundColor': '#1e1e1e', 'color': '#7FDBFF', 'padding': '20px'}, children=[
+app.layout = html.Div(className='main-container', children=[
     dcc.Graph(id='stock-graph'),
-    html.Div(style={'padding': '20px', 'display': 'flex', 'justify-content': 'space-between'}, children=[
-        html.Div(style={'flex': '1', 'padding': '10px'}, children=[
-            html.Label('3-Month Move Slider:', id='month-move-label', style={'font-weight': 'bold'}),
+    html.Button('Calculate Best Fit', id='calculate-best-fit-button', n_clicks=0, className='btn-calculate'),
+    html.Div(className='slider-container', children=[
+        html.Div(className='slider-box', children=[
+            html.Label('3-Month Move Slider:', id='month-move-label'),
             dcc.Slider(
                 id='month-move-slider',
                 min=-5*365,  # Extend the range to allow moving up to 5 years back (in days)
@@ -37,8 +42,8 @@ app.layout = html.Div(style={'backgroundColor': '#1e1e1e', 'color': '#7FDBFF', '
                 updatemode='drag'
             ),
         ]),
-        html.Div(style={'flex': '1', 'padding': '10px'}, children=[
-            html.Label('3-Month Y-Axis Offset:', id='month-y-offset-label', style={'font-weight': 'bold'}),
+        html.Div(className='slider-box', children=[
+            html.Label('3-Month Y-Axis Offset:', id='month-y-offset-label'),
             dcc.Slider(
                 id='month-y-offset-slider',
                 min=-50,  # Adjust the range as necessary
@@ -50,9 +55,9 @@ app.layout = html.Div(style={'backgroundColor': '#1e1e1e', 'color': '#7FDBFF', '
             ),
         ]),
     ]),
-    html.Div(style={'padding': '20px', 'display': 'flex', 'justify-content': 'space-between'}, children=[
-        html.Div(style={'flex': '1', 'padding': '10px'}, children=[
-            html.Label('3-Month X-Axis Scale Factor:', id='month-x-scale-label', style={'font-weight': 'bold'}),
+    html.Div(className='slider-container', children=[
+        html.Div(className='slider-box', children=[
+            html.Label('3-Month X-Axis Scale Factor:', id='month-x-scale-label'),
             dcc.Slider(
                 id='month-x-scale-slider',
                 min=-5.0,
@@ -63,8 +68,8 @@ app.layout = html.Div(style={'backgroundColor': '#1e1e1e', 'color': '#7FDBFF', '
                 updatemode='drag'
             ),
         ]),
-        html.Div(style={'flex': '1', 'padding': '10px'}, children=[
-            html.Label('3-Month Y-Axis Scale Factor:', id='month-y-scale-label', style={'font-weight': 'bold'}),
+        html.Div(className='slider-box', children=[
+            html.Label('3-Month Y-Axis Scale Factor:', id='month-y-scale-label'),
             dcc.Slider(
                 id='month-y-scale-slider',
                 min=-5.0,
@@ -76,9 +81,9 @@ app.layout = html.Div(style={'backgroundColor': '#1e1e1e', 'color': '#7FDBFF', '
             ),
         ]),
     ]),
-    html.Div(style={'padding': '20px', 'display': 'flex', 'justify-content': 'space-between'}, children=[
-        html.Div(style={'flex': '1', 'padding': '10px'}, children=[
-            html.Label('Open Price Logarithmic Scale Factor:', id='log-scale-label', style={'font-weight': 'bold'}),
+    html.Div(className='slider-container', children=[
+        html.Div(className='slider-box', children=[
+            html.Label('Open Price Logarithmic Scale Factor:', id='log-scale-label'),
             dcc.Slider(
                 id='log-scale-slider',
                 min=0,
@@ -90,7 +95,6 @@ app.layout = html.Div(style={'backgroundColor': '#1e1e1e', 'color': '#7FDBFF', '
             ),
         ]),
     ]),
-    html.Button('Calculate Best Fit', id='calculate-best-fit-button', n_clicks=0, style={'margin': '20px', 'background-color': '#007BFF', 'color': 'white', 'border': 'none', 'padding': '10px 20px', 'cursor': 'pointer', 'font-weight': 'bold'}),
 ])
 
 
@@ -107,7 +111,14 @@ app.layout = html.Div(style={'backgroundColor': '#1e1e1e', 'color': '#7FDBFF', '
 )
 def update_graph(month_move, month_y_scale, month_x_scale, month_y_offset, log_scale):
     # Five-year data (static)
-    trace_five_year = go.Scatter(x=df['Date'], y=df['Open'], mode='lines', name='5-Year Data')
+    trace_five_year = go.Scatter(
+        x=df['Date'],
+        y=df['Open'],
+        mode='lines',
+        name='5-Year Data',
+        text=df['Date'].dt.strftime('%b %d, %Y'),
+        hovertemplate='%{text}, %{y:.2f}'
+    )
 
     # Three-month data (always the most recent three months, but moved and scaled)
     three_months_data_moved = three_months_data.copy()
@@ -124,11 +135,15 @@ def update_graph(month_move, month_y_scale, month_x_scale, month_y_offset, log_s
     
     # Scale and offset the y-axis (price range) of the three-month data
     three_months_scaled_data = three_months_log_scaled_data * month_y_scale + month_y_offset
+
+    # Use the original date for hover text
     trace_three_months = go.Scatter(
         x=three_months_data_moved['Date'],
         y=three_months_scaled_data,
         mode='lines',
-        name='3-Month Data'
+        name='3-Month Data',
+        text=three_months_data['Date'].dt.strftime('%b %d, %Y'),  # Set the hover text to the original dates
+        hovertemplate='%{text}, %{y:.2f}'
     )
 
     return {
@@ -140,7 +155,7 @@ def update_graph(month_move, month_y_scale, month_x_scale, month_y_offset, log_s
             showlegend=True,
             plot_bgcolor='#1e1e1e',
             paper_bgcolor='#1e1e1e',
-            font={'color': '#7FDBFF'}
+            font={'color': '#7FDBFF'},
         )
     }
 
