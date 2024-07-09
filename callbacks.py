@@ -19,7 +19,7 @@ def register_callbacks(app, df, ftd_df, three_months_data):
             Input('date-picker-range', 'end_date'),
             Input('historic-picker-range', 'start_date'),
             Input('historic-picker-range', 'end_date'),
-            Input('y-offset-slider', 'value'),
+            Input('x-offset-slider', 'value'),
             Input('y-scale-slider', 'value'),
             Input('x-scale-slider', 'value'),
             Input('y-offset-slider', 'value'),
