@@ -19,6 +19,11 @@ body {
     font-weight: bold;
 }
 
+#trace-toggle {
+    display: flex;
+    flex-direction: column;
+}
+
 .slider-container {
     padding: 20px;
     display: flex;
