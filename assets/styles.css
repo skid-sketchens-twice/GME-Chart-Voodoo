@@ -49,8 +49,61 @@ body {
     margin-left: auto;
 }
 
+.DateRangePickerInput {
+    background-color: #2e2e2e;
+}
+
 .toggle-label {
     font-weight: bold;
     color: #7FDBFF;
     margin: 10px 0;
+}
+
+#csv-dropdown {
+    width: 200px;
+    color: white !important;
+}
+
+#csv-dropdown .Select-control {
+    background-color: #2e2e2e;
+    border-color: #007BFF;
+    color: white !important;
+}
+
+#csv-dropdown .Select-menu-outer {
+    background-color: #2e2e2e;
+    border-color: #007BFF;
+}
+
+#csv-dropdown .Select-option {
+    background-color: #2e2e2e;
+    color: #7FDBFF;
+}
+
+#csv-dropdown .Select-option.is-focused {
+    background-color: #007BFF;
+    color: white;
+}
+
+#csv-dropdown .Select-option.is-selected {
+    background-color: #0056b3;
+    color: white;
+}
+
+.DateInput_input {
+    background-color: #2e2e2e;
+    color: #7FDBFF;
+}
+
+.DateInput_input__focused {
+    background-color: #2e2e2e;
+    color: #7FDBFF;
+}
+
+.SingleDatePicker_picker__directionLeft {
+    background-color: #2e2e2e;
+}
+
+#react-select-2--value-item {
+    color: yellow;
 }
