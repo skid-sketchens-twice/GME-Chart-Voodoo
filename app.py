@@ -1,11 +1,10 @@
-# main.py
-
-import pandas as pd
-import os
 from dash import dcc, html, Dash
+import os
+from dash_extensions import Lottie  # Import Lottie for loading animations
 from utils import load_and_standardize_data
-from callbacks import register_callbacks  # Import the callback registration function
-from layout import create_layout  # Import the create_layout function
+from callbacks import register_callbacks
+from layout import create_layout
+import pandas as pd
 
 # List CSV files in the directory
 csv_files = [f for f in os.listdir('./tickerHistory/') if f.endswith('.csv')]
@@ -21,7 +20,10 @@ ftd_df['SETTLEMENT DATE'] = pd.to_datetime(ftd_df['SETTLEMENT DATE'], format='%Y
 ftd_df = ftd_df[ftd_df['QUANTITY (FAILS)'] > 150000]
 
 # Initialize the Dash app
-external_stylesheets = ['./assets/styles.css']
+external_stylesheets = [
+    './assets/styles.css',
+    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css'  # Font Awesome for gear icon
+]
 app = Dash(__name__, external_stylesheets=external_stylesheets)
 
 # Set the layout

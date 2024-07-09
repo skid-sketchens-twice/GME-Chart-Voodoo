@@ -1,18 +1,73 @@
 from dash import dcc, html
 import pandas as pd
-import os
-
-# List CSV files in the directory
-csv_files = [f for f in os.listdir('./tickerHistory/') if f.endswith('.csv')]
-
-initial_file = f'./tickerHistory/{csv_files[0]}'
-latest_date = pd.to_datetime('today')  # Replace with the actual latest date from your data
-three_months_ago = latest_date - pd.Timedelta(days=90)
-five_years_ago = latest_date - pd.Timedelta(days=5*365)
+import dash_daq as daq
 
 def create_layout(latest_date, five_years_ago, csv_files):
     return html.Div(className='main-container', children=[
         html.Div(className='top-row-container', children=[
+            html.Button(
+                html.I(className="fa fa-cog"),
+                id='settings-button',
+                className='settings-button',
+                n_clicks=0
+            ),
+            html.Div(
+                id='settings-modal',
+                className='modal',
+                style={'display': 'none'},
+                children=[
+                    html.Div(className='modal-content', children=[
+                        html.Div(className='modal-header', children=[
+                            html.H5('Settings'),
+                            html.Button('×', id='close-settings', className='close-button')
+                        ]),
+                        html.Div(className='modal-body', children=[
+                            html.Div(className='modal-section', children=[
+                                html.Label('Graph Options:'),
+                                dcc.Checklist(
+                                    id='trace-toggle',
+                                    options=[
+                                        {'label': 'Volume', 'value': 'volume'},
+                                        {'label': 'Open Price', 'value': 'open_price'},
+                                        {'label': 'GME FTD', 'value': 'ftd'}
+                                    ],
+                                    value=['volume', 'open_price'],
+                                    inline=True,
+                                    className='trace-toggle'
+                                ),
+                            ]),
+                            html.Div(className='modal-section color-picker-section', children=[
+                                html.Div(className='color-picker-box', children=[
+                                    html.Label('Static Chart Color:'),
+                                    daq.ColorPicker(
+                                        id='static-chart-color',
+                                        label='Pick Color',
+                                        value=dict(hex='#0000FF')
+                                    ),
+                                ]),
+                                html.Div(className='color-picker-box', children=[
+                                    html.Label('Overlay Color:'),
+                                    daq.ColorPicker(
+                                        id='overlay-color',
+                                        label='Pick Color',
+                                        value=dict(hex='#FF0000')
+                                    ),
+                                ]),
+                            ]),
+                            html.Div(className='modal-section color-picker-section', children=[
+                                html.Div(className='color-picker-box', children=[
+                                    html.Label('FTD Lines Color:'),
+                                    daq.ColorPicker(
+                                        id='ftd-lines-color',
+                                        label='Pick Color',
+                                        value=dict(hex='#00FF00')
+                                    ),
+                                ]),
+                            ]),
+                        ])
+                    ])
+                ]
+            ),
             dcc.Dropdown(
                 id='csv-dropdown',
                 options=[{'label': f.replace('.csv', ''), 'value': f} for f in csv_files],
@@ -28,14 +83,6 @@ def create_layout(latest_date, five_years_ago, csv_files):
                     html.Label('X-Axis Scale Factor:', id='x-scale-label'),
                     dcc.Slider(id='x-scale-slider', min=0, max=10.0, value=1.0, step=0.001, marks={i: str(i) for i in range(0, 11)}, updatemode='drag')
                 ]),
-            ]),
-            html.Div(className='trace-toggle-container', children=[
-                html.Label('Graph Options:', className='toggle-label'),
-                dcc.Checklist(
-                    id='trace-toggle',
-                    options=[{'label': 'Volume', 'value': 'volume'}, {'label': 'Open Price', 'value': 'open_price'}, {'label': 'GME FTD', 'value': 'ftd'}],
-                    value=['volume', 'open_price'], inline=True, className='trace-toggle'
-                )
             ]),
             html.Div(className='slider-container', children=[
                 html.Div(className='slider-box', children=[
@@ -60,7 +107,11 @@ def create_layout(latest_date, five_years_ago, csv_files):
             ]),
         ]),
         html.Button('Calculate Best Fit', id='calculate-best-fit-button', n_clicks=0, className='btn-calculate'),
-        dcc.Graph(id='stock-graph'),
+        dcc.Loading(
+            id="initial-loading",
+            type="default",
+            children=dcc.Graph(id='stock-graph')
+        ),
         html.Div(className='log-slider-container', children=[
             html.Div(className='slider-box', children=[
                 html.Label('Open Price Logarithmic Scale Factor:', id='log-scale-label'),

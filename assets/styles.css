@@ -141,3 +141,92 @@ body {
     margin-right: 15px;
     color: #7FDBFF;
 }
+
+.settings-button {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: transparent;
+    border: none;
+    color: #007bff;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.settings-button .fa-cog {
+    pointer-events: none;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: #2e2e2e;
+    padding: 20px;
+    border: 1px solid #888;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 600px; /* Adjust the width as necessary */
+    max-height: 80%; /* Adjust the height as necessary */
+    overflow-y: auto; /* Add vertical scrolling */
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px;
+    font-weight: bold;
+    font-size: x-large;
+}
+
+.modal-header h5 {
+    margin: 0;
+    color: #7FDBFF;
+}
+
+.modal-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.close-button {
+    background: transparent;
+    border: none;
+    color: #7FDBFF;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.modal-section {
+    margin-bottom: 10px;
+    color: #7FDBFF;
+}
+
+.color-picker-section {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap; /* Ensure the items wrap to the next line if necessary */
+}
+
+.color-picker-box {
+    width: 48%; /* Adjust the width to fit two color pickers per row */
+    margin-bottom: 10px;
+}
+
+.color-picker-box label {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
