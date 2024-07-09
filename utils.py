@@ -58,6 +58,9 @@ def update_graph(df, ftd_df, csv_file, use_date_range, start_date, end_date, fiv
     volume_five_year = go.Scatter(x=five_year_data['Date'], y=five_year_data['Volume'], name='Volume', marker=dict(color='rgba(50, 50, 150, 0.5)'), yaxis='y2', mode='lines')
 
     overlay_data = df[(df['Date'] >= start_date) & (df['Date'] <= end_date)] if use_date_range == 'yes' else three_months_data.copy()
+    overlay_data['Original Date'] = overlay_data['Date']
+    overlay_data['Original Open'] = overlay_data['Open']
+    overlay_data['Original Volume'] = overlay_data['Volume']
     overlay_data['Date'] += timedelta(days=move)
     
     date_range = overlay_data['Date'].max() - overlay_data['Date'].min()
@@ -67,9 +70,28 @@ def update_graph(df, ftd_df, csv_file, use_date_range, start_date, end_date, fiv
 
     overlay_log_scaled_data = np.log(overlay_data['Open']) * log_scale if log_scale > 0 else overlay_data['Open']
     overlay_scaled_data = overlay_log_scaled_data * y_scale + y_offset
+    overlay_scaled_volume = overlay_data['Volume'] * y_scale
 
-    trace_overlay = go.Scatter(x=overlay_data['Date'], y=overlay_scaled_data, mode='lines', name='Overlay Data', text=overlay_data['Date'].dt.strftime('%b %d, %Y'), hovertemplate='%{text}, %{y:.2f}')
-    volume_overlay = go.Scatter(x=overlay_data['Date'], y=overlay_data['Volume'], name='Overlay Volume', marker=dict(color='rgba(150, 50, 50, 0.5)'), yaxis='y2', mode='lines')
+    trace_overlay = go.Scatter(
+        x=overlay_data['Date'], 
+        y=overlay_scaled_data, 
+        mode='lines', 
+        name='Overlay Data', 
+        text=overlay_data['Original Date'].dt.strftime('%b %d, %Y'), 
+        hovertemplate='%{text}, %{y:.2f} (Original: %{customdata[0]:.2f})', 
+        customdata=np.stack((overlay_data['Original Open'],), axis=-1)
+    )
+    volume_overlay = go.Scatter(
+        x=overlay_data['Date'], 
+        y=overlay_scaled_volume, 
+        name='Overlay Volume', 
+        marker=dict(color='rgba(150, 50, 50, 0.5)'), 
+        yaxis='y2', 
+        mode='lines', 
+        text=overlay_data['Original Date'].dt.strftime('%b %d, %Y'), 
+        hovertemplate='%{text}, %{y} (Original: %{customdata[0]})', 
+        customdata=np.stack((overlay_data['Original Volume'].apply(format_volume),), axis=-1)
+    )
 
     ftd_lines = [
         go.Scatter(
@@ -103,7 +125,7 @@ def update_graph(df, ftd_df, csv_file, use_date_range, start_date, end_date, fiv
         plot_bgcolor='#1e1e1e',
         paper_bgcolor='#1e1e1e',
         font={'color': '#7FDBFF'},
-        height= 550
+        height=550
     )
 
     if relayoutData and 'xaxis.range[0]' in relayoutData:
@@ -114,6 +136,7 @@ def update_graph(df, ftd_df, csv_file, use_date_range, start_date, end_date, fiv
         layout['yaxis2']['range'] = [relayoutData['yaxis2.range[0]'], relayoutData['yaxis2.range[1]']]
 
     return five_years_ago, latest_date, five_years_ago, latest_date, {'data': data, 'layout': layout}
+
 
 def calculate_best_fit(df, three_months_data, n_clicks, move, y_scale, x_scale, y_offset, log_scale, use_date_range, start_date, end_date):
     if n_clicks == 0:
@@ -130,3 +153,12 @@ def calculate_best_fit(df, three_months_data, n_clicks, move, y_scale, x_scale, 
     result = minimize(calculate_fit, initial_params, args=(overlay_data, df), method='Nelder-Mead')
     
     return result.x[0], result.x[1], result.x[2], result.x[3], result.x[4]
+
+def format_volume(volume):
+    if volume >= 1e9:
+        return f'{volume / 1e9:.2f}B'
+    elif volume >= 1e6:
+        return f'{volume / 1e6:.2f}M'
+    else:
+        return str(volume)
+
