@@ -19,7 +19,7 @@ def register_callbacks(app, df, ftd_df, three_months_data):
             Input('date-picker-range', 'end_date'),
             Input('historic-picker-range', 'start_date'),
             Input('historic-picker-range', 'end_date'),
-            Input('move-slider', 'value'),
+            Input('y-offset-slider', 'value'),
             Input('y-scale-slider', 'value'),
             Input('x-scale-slider', 'value'),
             Input('y-offset-slider', 'value'),
@@ -28,12 +28,12 @@ def register_callbacks(app, df, ftd_df, three_months_data):
             State('stock-graph', 'relayoutData')
         ]
     )
-    def update_graph_callback(csv_file, use_date_range, start_date, end_date, five_year_start, five_year_end, move, y_scale, x_scale, y_offset, log_scale, trace_toggle, relayoutData):
-        return update_graph(df, ftd_df, csv_file, use_date_range, start_date, end_date, five_year_start, five_year_end, move, y_scale, x_scale, y_offset, log_scale, trace_toggle, relayoutData)
+    def update_graph_callback(csv_file, use_date_range, start_date, end_date, five_year_start, five_year_end, x_offset, y_scale, x_scale, y_offset, log_scale, trace_toggle, relayoutData):
+        return update_graph(df, ftd_df, csv_file, use_date_range, start_date, end_date, five_year_start, five_year_end, x_offset, y_scale, x_scale, y_offset, log_scale, trace_toggle, relayoutData)
     
-    @app.callback(Output('move-label', 'children'), [Input('move-slider', 'value')])
-    def update_move_label(value):
-        return f'Move Slider: {value} days'
+    @app.callback(Output('x-offset-label', 'children'), [Input('x-offset-slider', 'value')])
+    def update_x_offset_label(value):
+        return f'X-Axis Offset: {value} days'
 
     @app.callback(Output('y-scale-label', 'children'), [Input('y-scale-slider', 'value')])
     def update_y_scale_label(value):
@@ -52,13 +52,13 @@ def register_callbacks(app, df, ftd_df, three_months_data):
         return f'Open Price Logarithmic Scale Factor: {value}'
 
     @app.callback(
-        Output('move-slider', 'value'),
+        Output('x-offset-slider', 'value'),
         Output('y-scale-slider', 'value'),
         Output('x-scale-slider', 'value'),
         Output('y-offset-slider', 'value'),
         Output('log-scale-slider', 'value'),
         Input('calculate-best-fit-button', 'n_clicks'),
-        State('move-slider', 'value'),
+        State('x-offset-slider', 'value'),
         State('y-scale-slider', 'value'),
         State('x-scale-slider', 'value'),
         State('y-offset-slider', 'value'),
@@ -67,5 +67,5 @@ def register_callbacks(app, df, ftd_df, three_months_data):
         State('date-picker-range', 'start_date'),
         State('date-picker-range', 'end_date')
     )
-    def calculate_best_fit_callback(n_clicks, move, y_scale, x_scale, y_offset, log_scale, use_date_range, start_date, end_date):
-        return calculate_best_fit(df, three_months_data, n_clicks, move, y_scale, x_scale, y_offset, log_scale, use_date_range, start_date, end_date)
+    def calculate_best_fit_callback(n_clicks, x_offset, y_scale, x_scale, y_offset, log_scale, use_date_range, start_date, end_date):
+        return calculate_best_fit(df, three_months_data, n_clicks, x_offset, y_scale, x_scale, y_offset, log_scale, use_date_range, start_date, end_date)

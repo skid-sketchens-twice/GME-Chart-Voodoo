@@ -9,6 +9,13 @@ body {
     position: relative; /* Allow absolute positioning within the container */
 }
 
+.top-row-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
 .btn-calculate {
     margin: 20px;
     background-color: #007BFF;
@@ -27,7 +34,8 @@ body {
 
 .slider-container {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    width: 25%;
 }
 
 .slider-box {
@@ -45,8 +53,8 @@ body {
     border-radius: 5px;
     display: flex;
     flex-direction: column;
-    width: max-content;
-    margin-left: auto;
+    align-items: center;
+    width: auto;
 }
 
 .DateRangePickerInput {
@@ -106,4 +114,30 @@ body {
 
 .has-value.Select--single > .Select-control .Select-value .Select-value-label {
     color: yellow;
+}
+
+.trace-toggle-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    background-color: #2e2e2e;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.trace-toggle-container .toggle-label {
+    margin-bottom: 5px;
+}
+
+.trace-toggle {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-around;
+    width: 100%;
+}
+
+.trace-toggle .toggle-label {
+    margin-right: 15px;
+    color: #7FDBFF;
 }
