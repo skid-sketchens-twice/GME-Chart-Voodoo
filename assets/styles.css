@@ -5,7 +5,7 @@ body {
 }
 
 .main-container {
-    padding: 20px;
+    padding: 10px;
     position: relative; /* Allow absolute positioning within the container */
 }
 
@@ -14,9 +14,10 @@ body {
     background-color: #007BFF;
     color: white;
     border: none;
-    padding: 10px 20px;
+    padding: 10px;
     cursor: pointer;
     font-weight: bold;
+    border-radius: 10px;
 }
 
 #trace-toggle {
@@ -25,14 +26,13 @@ body {
 }
 
 .slider-container {
-    padding: 20px;
     display: flex;
     justify-content: space-between;
 }
 
 .slider-box {
     flex: 1;
-    padding: 10px;
+    padding: 5px;
 }
 
 .slider-box label {
@@ -41,7 +41,7 @@ body {
 
 .date-picker-container {
     background-color: #2e2e2e;
-    padding: 10px;
+    padding: 5px;
     border-radius: 5px;
     display: flex;
     flex-direction: column;
@@ -104,6 +104,6 @@ body {
     background-color: #2e2e2e;
 }
 
-#react-select-2--value-item {
+.has-value.Select--single > .Select-control .Select-value .Select-value-label {
     color: yellow;
 }
