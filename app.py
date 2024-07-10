@@ -18,7 +18,7 @@ latest_date = df['Date'].max()
 three_months_ago = latest_date - pd.Timedelta(days=90)
 five_years_ago = latest_date - pd.Timedelta(days=5*365)
 three_months_data = df[(df['Date'] >= three_months_ago) & (df['Date'] <= latest_date)]
-ftd_df = pd.read_csv("./combined_gme_Data.csv")
+ftd_df = pd.read_csv("./ftd_data/GME_FTD.csv")
 ftd_df['SETTLEMENT DATE'] = pd.to_datetime(ftd_df['SETTLEMENT DATE'], format='%Y%m%d')
 ftd_df = ftd_df[ftd_df['QUANTITY (FAILS)'] > 150000]
 
