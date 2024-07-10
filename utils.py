@@ -62,9 +62,9 @@ def update_graph(
         x=five_year_data['Date'], y=five_year_data['Open'], mode='lines', name='Historic Data',
         text=five_year_data['Date'].dt.strftime('%b %d, %Y'), hovertemplate='%{text}, %{y:.2f}', line=dict(color=static_chart_color)
     )
-    volume_five_year = go.Scatter(
+    volume_five_year = go.Bar(
         x=five_year_data['Date'], y=five_year_data['Volume'], name='Volume', marker=dict(color='rgba(50, 50, 150, 0.5)'),
-        yaxis='y2', mode='lines'
+        yaxis='y2'
     )
 
     overlay_data = df[(df['Date'] >= start_date) & (df['Date'] <= end_date)] if use_date_range == 'yes' else three_months_data.copy()
@@ -87,9 +87,9 @@ def update_graph(
         text=overlay_data['Original Date'].dt.strftime('%b %d, %Y'), hovertemplate='%{text}, %{y:.2f} (Original: %{customdata[0]:.2f})',
         customdata=np.stack((overlay_data['Original Open'],), axis=-1), line=dict(color=overlay_color)
     )
-    volume_overlay = go.Scatter(
+    volume_overlay = go.Bar(
         x=overlay_data['Date'], y=overlay_scaled_volume, name='Overlay Volume',
-        marker=dict(color='rgba(150, 50, 50, 0.5)'), yaxis='y2', mode='lines',
+        marker=dict(color='rgba(150, 50, 50, 0.5)'), yaxis='y2',
         text=overlay_data['Original Date'].dt.strftime('%b %d, %Y'), hovertemplate='%{text}, %{y} (Original: %{customdata[0]})',
         customdata=np.stack((overlay_data['Original Volume'].apply(format_volume),), axis=-1)
     )

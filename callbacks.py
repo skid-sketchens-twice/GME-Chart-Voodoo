@@ -1,4 +1,4 @@
-from dash import Input, Output, State, callback_context, dcc, dash
+from dash import Input, Output, State, callback_context
 from utils import update_graph, calculate_best_fit
 import pandas as pd
 
@@ -10,7 +10,6 @@ def register_callbacks(app, df, ftd_df, three_months_data):
             Output('historic-picker-range', 'start_date'),
             Output('historic-picker-range', 'end_date'),
             Output('stock-graph', 'figure'),
-            Output('initial-loading', 'children')
         ],
         [
             Input('csv-dropdown', 'value'),
@@ -32,20 +31,28 @@ def register_callbacks(app, df, ftd_df, three_months_data):
         ]
     )
     def update_graph_callback(csv_file, use_date_range, start_date, end_date, five_year_start, five_year_end, x_offset, y_scale, x_scale, y_offset, log_scale, trace_toggle, static_chart_color, overlay_color, ftd_lines_color, relayoutData):
+        # Get the context to identify which input triggered the callback
         ctx = callback_context
         trigger = ctx.triggered[0]['prop_id'].split('.')[0]
-        
-        # Initial loading
-        if trigger == 'csv-dropdown':
-            figure = update_graph(
-                df, ftd_df, csv_file, use_date_range, start_date, end_date,
-                five_year_start, five_year_end, x_offset, y_scale, x_scale,
-                y_offset, log_scale, trace_toggle, relayoutData,
-                static_chart_color['hex'], overlay_color['hex'], ftd_lines_color['hex']
-            )
-            return start_date, end_date, five_year_start, five_year_end, figure, dcc.Graph(id='stock-graph', figure=figure)
-        
-        # Color change without reloading
+
+        # Update the graph if csv file is changed or color pickers are used
+        if csv_file is None:
+            return start_date, end_date, five_year_start, five_year_end, {
+                'data': [],
+                'layout': {
+                    'xaxis': {'title': 'Date'},
+                    'yaxis': {'title': 'Open Price'},
+                    'yaxis2': {'title': 'Volume', 'overlaying': 'y', 'side': 'right', 'showgrid': True},
+                    'showlegend': True,
+                    'plot_bgcolor': '#1e1e1e',
+                    'paper_bgcolor': '#1e1e1e',
+                    'font': {'color': '#7FDBFF'},
+                    'height': 550,
+                    'xaxis_rangeslider': {'visible': True}
+                }
+            }
+
+        # Check if color picker triggered the callback
         if trigger in ['static-chart-color', 'overlay-color', 'ftd-lines-color']:
             figure = update_graph(
                 df, ftd_df, csv_file, use_date_range, start_date, end_date,
@@ -53,9 +60,8 @@ def register_callbacks(app, df, ftd_df, three_months_data):
                 y_offset, log_scale, trace_toggle, relayoutData,
                 static_chart_color['hex'], overlay_color['hex'], ftd_lines_color['hex']
             )
-            return start_date, end_date, five_year_start, five_year_end, figure, dash.no_update
+            return start_date, end_date, five_year_start, five_year_end, figure
 
-        # Regular graph update
         figure = update_graph(
             df, ftd_df, csv_file, use_date_range, start_date, end_date,
             five_year_start, five_year_end, x_offset, y_scale, x_scale,
@@ -69,7 +75,7 @@ def register_callbacks(app, df, ftd_df, three_months_data):
         else:
             figure['layout']['xaxis']['range'] = [df['Date'].min(), df['Date'].max()]
 
-        return start_date, end_date, five_year_start, five_year_end, figure, dash.no_update
+        return start_date, end_date, five_year_start, five_year_end, figure
 
     @app.callback(
         Output('settings-modal', 'style'),
