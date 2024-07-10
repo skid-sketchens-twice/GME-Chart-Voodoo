@@ -8,6 +8,9 @@ import pandas as pd
 
 # List CSV files in the directory
 csv_files = [f for f in os.listdir('./tickerHistory/') if f.endswith('.csv')]
+if 'GME.csv' in csv_files:
+    csv_files.remove('GME.csv')
+    csv_files.insert(0, 'GME.csv')
 
 initial_file = f'./tickerHistory/{csv_files[0]}'
 df = load_and_standardize_data(initial_file)
